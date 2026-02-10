@@ -152,6 +152,7 @@ class _MovieListState extends State<MovieList> {
       body: ListView.builder(
         itemCount: moviesCount,
         itemBuilder: (context, position) {
+          final movie = movies![position];
           return Card(
             color: const Color(0xFF1A2A3A),
             elevation: 3.0,
@@ -163,31 +164,75 @@ class _MovieListState extends State<MovieList> {
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: const Color(0xFF1B3A5C),
-                backgroundImage: (movies![position].posterPath.isNotEmpty)
-                    ? NetworkImage(movies![position].posterUrl)
+                backgroundImage: (movie.posterPath.isNotEmpty)
+                    ? NetworkImage(movie.posterUrl)
                     : const NetworkImage(
                             'https://images.freeimages.com/images/large-previews/5eb/movie-clapboard-1184339.jpg',
                           )
                           as ImageProvider,
               ),
               title: Text(
-                movies![position].title,
+                movie.title,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              subtitle: Text(
-                'Released: ${movies![position].id}',
-                style: const TextStyle(color: Color(0xFF5DADE2)),
-              ), // คุณสามารถเปลี่ยนเป็น releaseDate ได้ถ้ามีข้อมูล
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Released: ${movie.releaseDate}',
+                      style: const TextStyle(
+                        color: Color(0xFF5DADE2),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        ...List.generate(5, (index) {
+                          final starValue = (index + 1) * 2;
+                          if (movie.voteAverage >= starValue) {
+                            return const Icon(
+                              Icons.star,
+                              color: Color(0xFFFFD700),
+                              size: 16,
+                            );
+                          } else if (movie.voteAverage >= starValue - 1) {
+                            return const Icon(
+                              Icons.star_half,
+                              color: Color(0xFFFFD700),
+                              size: 16,
+                            );
+                          } else {
+                            return const Icon(
+                              Icons.star_border,
+                              color: Color(0xFFFFD700),
+                              size: 16,
+                            );
+                          }
+                        }),
+                        const SizedBox(width: 6),
+                        Text(
+                          movie.voteAverage.toStringAsFixed(1),
+                          style: const TextStyle(
+                            color: Color(0xFFFFD700),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
               onTap: () {
-                // ส่งข้อมูล Object Movie ไปยังหน้าละเอียดเมื่อมีการแตะ
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => MovieDetail(movies![position]),
-                  ),
+                  MaterialPageRoute(builder: (_) => MovieDetail(movie)),
                 );
               },
             ),
@@ -226,11 +271,54 @@ class MovieDetail extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                height: height / 1.5, // กำหนดความสูงรูปภาพตามขนาดหน้าจอ
+                height: height / 1.5,
                 child: Image.network(
                   (movie.posterPath.isNotEmpty)
                       ? movie.posterUrl
                       : 'https://images.freeimages.com/images/large-previews/5eb/movie-clapboard-1184339.jpg',
+                ),
+              ),
+              // Rating display
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ...List.generate(5, (index) {
+                      final starValue = (index + 1) * 2;
+                      if (movie.voteAverage >= starValue) {
+                        return const Icon(
+                          Icons.star,
+                          color: Color(0xFFFFD700),
+                          size: 28,
+                        );
+                      } else if (movie.voteAverage >= starValue - 1) {
+                        return const Icon(
+                          Icons.star_half,
+                          color: Color(0xFFFFD700),
+                          size: 28,
+                        );
+                      } else {
+                        return const Icon(
+                          Icons.star_border,
+                          color: Color(0xFFFFD700),
+                          size: 28,
+                        );
+                      }
+                    }),
+                    const SizedBox(width: 10),
+                    Text(
+                      '${movie.voteAverage.toStringAsFixed(1)} / 10',
+                      style: const TextStyle(
+                        color: Color(0xFFFFD700),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Container(
